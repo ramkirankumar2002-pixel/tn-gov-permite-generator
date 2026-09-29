@@ -250,7 +250,7 @@ function renderPermitFormCompact(p, qrDataUrl, sigs) {
   return `
   <div style="padding:2px 10px 4px;font-size:6.6pt;font-family:Arial,sans-serif;position:relative;">
     <!-- Dispatch header row -->
-    <div style="display:flex;justify-content:space-between;margin-bottom:2px;color:#555;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:0;color:#555;">
       <span>HSN Code: <strong>${p.hsnCode}</strong></span>
       <span>Date &amp; Time of Dispatch : <strong>${p.dispatchDateTime}</strong></span>
       ${qrImg ? `<div style="position:absolute;top:2px;right:10px;">${qrImg}</div>` : ''}
