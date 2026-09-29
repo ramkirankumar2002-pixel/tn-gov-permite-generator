@@ -210,7 +210,7 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#212121;min-height:
 /* Duplicate (bottom half): below its heading — reference alignment */
 .permit-doc.permit-duplicate,
 .permit-page > .permit-doc:nth-of-type(2) {
-  top: 16.95cm;
+  top: 16.65cm;
 }
 /* Generated serial sits over the pre-printed number and masks it */
 .permit-top-bar {
@@ -811,7 +811,7 @@ function getTemplate(){ return {...DEFAULT_TEMPLATE, ...Store.get('permitTemplat
 // ============================================================
 const DEFAULT_CALIBRATION = {
   p1Top: 4.1,
-  p2Top: 16.95,
+  p2Top: 16.65,
   tableWidth: 16.2,
   tableHeight: 9.5,
   cellPaddingV: 0.0,
@@ -830,7 +830,7 @@ const DEFAULT_CALIBRATION = {
 
 function getCalibration(){
   const stored = Store.get('printCalibration', {});
-  const CAL_VERSION = 18;
+  const CAL_VERSION = 19;
   if(stored && (stored.tableWidth > 100 || stored._v !== CAL_VERSION)){
     Store.del('printCalibration');
     return { ...DEFAULT_CALIBRATION, _v: CAL_VERSION };
