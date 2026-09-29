@@ -210,7 +210,7 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#212121;min-height:
 /* Duplicate (bottom half): below its heading — reference alignment */
 .permit-doc.permit-duplicate,
 .permit-page > .permit-doc:nth-of-type(2) {
-  top: 16.65cm;
+  top: 16.85cm;
 }
 /* Generated serial sits over the pre-printed number and masks it */
 .permit-top-bar {
@@ -225,7 +225,7 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#212121;min-height:
 .permit-top-bar .p-serial {
   position: absolute;
   top: 9mm;
-  right: 18.5mm;
+  right: 16.5mm;
   z-index: 3;
   font-size: 10.5pt;
   font-weight: 600;
@@ -812,7 +812,7 @@ function getTemplate(){ return {...DEFAULT_TEMPLATE, ...Store.get('permitTemplat
 // ============================================================
 const DEFAULT_CALIBRATION = {
   p1Top: 4.1,
-  p2Top: 16.65,
+  p2Top: 16.85,
   tableWidth: 16.2,
   tableHeight: 9.5,
   cellPaddingV: 0.0,
@@ -822,7 +822,7 @@ const DEFAULT_CALIBRATION = {
   qrRight: 0.0,
   qrLift: 2.2,
   serialTop: 0.9,
-  serialRight: 1.85,
+  serialRight: 1.65,
   tableTopGap: 0.0,
   sigHeight: 12.0,
   fontSize: 7.8,
@@ -831,7 +831,7 @@ const DEFAULT_CALIBRATION = {
 
 function getCalibration(){
   const stored = Store.get('printCalibration', {});
-  const CAL_VERSION = 20;
+  const CAL_VERSION = 21;
   if(stored && (stored.tableWidth > 100 || stored._v !== CAL_VERSION)){
     Store.del('printCalibration');
     return { ...DEFAULT_CALIBRATION, _v: CAL_VERSION };
