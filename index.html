@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="app-version" content="qr-fmt-new-7">
+  <meta name="description" content="Tamil Nadu Department of Geology and Mining — Transport Permit Generator">
+  <title>TN Mining Transport Permit Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#212121;min-height:100vh;line-height:1.5}
+
+/* ===== TOPBAR ===== */
+#topbar{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000;box-shadow:0 4px 6px rgba(0,0,0,.1)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:38px;height:38px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.brand-title{font-size:.95rem;font-weight:700;letter-spacing:.5px}
+.brand-sub{font-size:.67rem;opacity:.75}
+.topbar-right{font-size:.8rem;opacity:.85}
+
+/* ===== NAV ===== */
+#nav-tabs{background:#fff;border-bottom:1px solid #e0e0e0;display:flex;overflow-x:auto;padding:0 16px;gap:2px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#nav-tabs::-webkit-scrollbar{height:2px}
+#nav-tabs::-webkit-scrollbar-thumb{background:#e91e63}
+.nav-tab{display:flex;align-items:center;gap:7px;padding:14px 18px;border:none;background:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;color:#757575;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;position:relative;bottom:-1px}
+.nav-tab:hover{color:#1a237e;background:#fafafa}
+.nav-tab.active{color:#1a237e;border-bottom-color:#1a237e;font-weight:700}
+
+/* ===== MAIN ===== */
+#main-content{max-width:1300px;margin:0 auto;padding:24px 16px}
+.tab-panel{display:none;animation:fadeIn .25s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== CARDS ===== */
+.card{background:#fff;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #e0e0e0;margin-bottom:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #fce4ec}
+.card-title{font-size:1rem;font-weight:700;color:#1a237e;display:flex;align-items:center;gap:8px}
+
+/* ===== FORM ===== */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:.72rem;font-weight:700;color:#757575;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:4px;font-family:'Inter',sans-serif;font-size:.85rem;color:#212121;transition:all .2s;background:#fff;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#1a237e;box-shadow:0 0 0 3px rgba(26,35,126,.08)}
+.form-group textarea{resize:vertical;min-height:70px}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:4px;font-family:'Inter',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:#1a237e;color:#fff}.btn-primary:hover{background:#283593;box-shadow:0 4px 8px rgba(0,0,0,.15)}
+.btn-success{background:#2e7d32;color:#fff}.btn-success:hover{background:#1b5e20}
+.btn-danger{background:#c62828;color:#fff}.btn-danger:hover{background:#b71c1c}
+.btn-warning{background:#f57f17;color:#fff}.btn-warning:hover{background:#e65100}
+.btn-outline{background:transparent;color:#1a237e;border:1.5px solid #1a237e}.btn-outline:hover{background:#1a237e;color:#fff}
+.btn-pink{background:#e91e63;color:#fff}.btn-pink:hover{background:#ad1457}
+.btn-sm{padding:5px 11px;font-size:.76rem}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* ===== GENERATE HERO ===== */
+.generate-hero{background:linear-gradient(135deg,#1a237e,#3949ab);border-radius:8px;padding:28px 32px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+.generate-hero h2{font-size:1.3rem;font-weight:700;margin-bottom:6px}
+.generate-hero p{font-size:.83rem;opacity:.85}
+
+/* ===== PARAMS GRID ===== */
+.generate-params{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:20px}
+.param-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px;transition:all .2s}
+.param-card:hover{border-color:#1a237e;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.param-card label{font-size:.72rem;font-weight:700;color:#757575;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
+.param-card input,.param-card select{width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:4px;font-size:.88rem;font-family:'Inter',sans-serif;transition:all .2s}
+.param-card input:focus,.param-card select:focus{outline:none;border-color:#1a237e;box-shadow:0 0 0 3px rgba(26,35,126,.08)}
+
+/* ===== EXPORT BAR ===== */
+.export-bar{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.export-label{font-size:.78rem;font-weight:700;color:#757575;text-transform:uppercase;letter-spacing:.4px}
+
+/* ===== PROGRESS ===== */
+.progress-wrap{background:#f5f5f5;border-radius:20px;height:8px;overflow:hidden;margin-bottom:6px}
+.progress-bar{height:100%;background:linear-gradient(90deg,#1a237e,#e91e63);border-radius:20px;transition:width .3s ease;width:0%}
+.progress-text{font-size:.75rem;color:#757575;margin-bottom:14px}
+
+/* ===== STATS ===== */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:8px;padding:16px 18px;border:1px solid #e0e0e0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-num{font-size:1.7rem;font-weight:800;color:#1a237e;line-height:1;margin-bottom:3px}
+.stat-label{font-size:.72rem;font-weight:600;color:#757575;text-transform:uppercase;letter-spacing:.4px}
+
+/* ===== TABLES ===== */
+.data-table-wrap{overflow-x:auto}
+.data-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.data-table th{background:#1a237e;color:#fff;padding:11px 14px;text-align:left;font-weight:600;font-size:.78rem;white-space:nowrap}
+.data-table td{padding:10px 14px;border-bottom:1px solid #f0f0f0;vertical-align:middle;color:#424242}
+.data-table tr:hover td{background:#fafafa}
+.data-table tr:last-child td{border-bottom:none}
+.actions{display:flex;gap:6px}
+
+/* ===== BADGE ===== */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.3px}
+.badge-blue{background:#e3f2fd;color:#1565c0}
+.badge-green{background:#e8f5e9;color:#2e7d32}
+
+/* ===== SIGNATURE CARDS ===== */
+.sig-upload-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.sig-upload-card{border:2px dashed #e0e0e0;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa}
+.sig-upload-card:hover{border-color:#1a237e;background:rgba(26,35,126,.03)}
+.sig-upload-card.has-sig{border-style:solid;border-color:#2e7d32;background:#f1f8e9}
+.sig-upload-card .sig-preview{max-width:160px;max-height:80px;object-fit:contain;margin:10px auto;display:none}
+.sig-upload-card .sig-label{font-size:.82rem;font-weight:700;color:#616161;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.sig-upload-card .sig-icon{font-size:2rem;color:#bdbdbd;margin-bottom:8px}
+.sig-upload-card.has-sig .sig-icon{color:#2e7d32}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:8px;padding:28px;max-width:520px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 10px 25px rgba(0,0,0,.15);animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-size:1rem;font-weight:700;color:#1a237e;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #fce4ec}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:14px;border-top:1px solid #f0f0f0}
+.modal-input{width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:4px;font-size:.88rem;font-family:'Inter',sans-serif;margin-bottom:12px}
+.modal-input:focus{outline:none;border-color:#1a237e}
+.modal-label{font-size:.72rem;font-weight:700;color:#757575;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+
+/* ===== TOAST ===== */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+.toast{background:#212121;color:#fff;padding:12px 18px;border-radius:4px;font-size:.83rem;font-weight:500;min-width:230px;box-shadow:0 10px 25px rgba(0,0,0,.15);animation:slideInRight .3s ease;display:flex;align-items:center;gap:10px}
+.toast.success{background:#2e7d32}.toast.error{background:#c62828}.toast.warning{background:#e65100}
+@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{text-align:center;padding:40px 24px;color:#bdbdbd}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:12px}
+
+/* ===== INFO BOX ===== */
+.info-box{border-left:4px solid;padding:12px 16px;border-radius:4px;font-size:.82rem;margin-bottom:16px}
+.info-box.blue{background:#e8eaf6;border-color:#3949ab;color:#1a237e}
+.info-box.amber{background:#fff8e1;border-color:#f9a825;color:#e65100}
+.info-box.teal{background:#e0f2f1;border-color:#00897b;color:#004d40}
+
+/* ===== SECTION DIVIDER ===== */
+.section-divider{font-size:.78rem;font-weight:700;color:#1a237e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e0e0e0}
+
+/* ===== QR CUSTOMIZE ===== */
+.qr-field-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.qr-field-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:8px;background:#fff}
+.qr-field-row.off{opacity:.5}
+.qr-field-row .qr-field-name{flex:1;font-weight:600;color:#212121;font-size:.85rem}
+.qr-field-row .qr-field-sample{font-size:.74rem;color:#757575;font-family:Consolas,ui-monospace,monospace;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qr-check{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:#424242;white-space:nowrap}
+.qr-check input{width:16px;height:16px;accent-color:#1a237e}
+.qr-opt-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px}
+.qr-preview-box{background:#12183a;color:#c5cae9;padding:14px 16px;border-radius:8px;font-family:Consolas,ui-monospace,monospace;font-size:.8rem;word-break:break-all;line-height:1.55;min-height:48px}
+
+/* ===================================================
+   PERMIT DOCUMENT LAYOUT — Fixed physical measurements
+   Table: 16cm × 10.5cm | QR: 15mm × 15mm
+=================================================== */
+/* Permit page wrapper — one A4 = 2 permits (Royalty Page with background) */
+.permit-page {
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto 40px;
+  background-color: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,.15);
+  display: block;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+.page-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  display: block;
+}
+.permit-doc {
+  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8pt;
+  color: #000;
+  width: 16.2cm;
+  margin: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+/* Original (top half): below heading, fully inside top half */
+.permit-doc.permit-original,
+.permit-page > .permit-doc:nth-of-type(1) {
+  top: 4.1cm;
+}
+/* Duplicate (bottom half): below its heading — reference alignment */
+.permit-doc.permit-duplicate,
+.permit-page > .permit-doc:nth-of-type(2) {
+  top: 16.95cm;
+}
+/* Generated serial sits over the pre-printed number and masks it */
+.permit-top-bar {
+  position: absolute;
+  top: -2.2cm;
+  left: 0;
+  right: 0;
+  height: 18mm;
+  box-sizing: border-box;
+  z-index: 5;
+}
+.permit-top-bar .p-serial {
+  position: absolute;
+  top: 9mm;
+  right: 18.5mm;
+  z-index: 3;
+  font-size: 10.5pt;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1;
+  color: #6a6a6a;
+  background: none !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  -webkit-box-shadow: none !important;
+  white-space: nowrap;
+  text-align: center;
+}
+.permit-top-bar .p-qr {
+  position: absolute;
+  top: 2.5mm;
+  right: 0;
+  z-index: 2;
+}
+.permit-top-bar .p-qr img {
+  width: 15mm;
+  height: 15mm;
+  display: block;
+}
+.permit-hsn-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1px 4px;
+  margin-top: 0;
+  font-size: 8pt;
+  font-weight: 600;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+}
+/* Table sits in the content band below the printed heading */
+.permit-table {
+  width: 16.2cm;
+  height: 9.5cm;
+  margin-top: 2.5mm;
+  border-collapse: collapse;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+.permit-table td {
+  border: 1px solid #999;
+  padding: 1px 3px;
+  vertical-align: middle;
+  font-size: 8pt;
+  line-height: 1.2;
+  background: transparent;
+  color: #000;
+  font-weight: 600;
+  font-family: Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
+}
+.permit-table .table-serial {
+  color: #6a6a6a;
+  font-weight: 600;
+}
+.sig-row td { vertical-align: bottom; }
+.sig-row td img { max-height: 36px; max-width: 100px; object-fit: contain; display: block; }
+
+/* Instruction page — one A4 = Terms & Conditions */
+.instruction-page {
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto 40px;
+  background-color: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,.15);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== PRINT — Chrome/Edge: one permit sheet = one A4, no shrink ===== */
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html, body {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    overflow: visible !important;
+  }
+
+  /* Hide the website chrome — print permit + instruction sheets */
+  #topbar,
+  #nav-tabs,
+  .export-bar,
+  .generate-hero,
+  .generate-params,
+  .generate-actions,
+  .btn-group,
+  .stats-row,
+  .info-box,
+  .progress-wrap,
+  .progress-text,
+  .toast-container,
+  #calibration-panel,
+  #toast-container,
+  .card-header,
+  .tab-panel:not(#panel-dashboard),
+  .card:not(#preview-card),
+  #qr-customize-card {
+    display: none !important;
+  }
+
+  /* Flatten wrappers so they cannot shrink or offset the page */
+  #main-content,
+  #panel-dashboard,
+  #preview-card,
+  #permits-preview {
+    display: block !important;
+    position: static !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  /* Each permit sheet and each instruction sheet is one A4 page. */
+  .permit-page,
+  .instruction-page {
+    display: block !important;
+    position: relative !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-width: 210mm !important;
+    max-height: 297mm !important;
+    min-width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .permit-page.print-sheet-last,
+  .instruction-page.print-sheet-last {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  .page-bg {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    object-fit: fill !important;
+    display: block !important;
+  }
+
+  .permit-doc {
+    box-shadow: none !important;
+    margin: 0 !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .permit-top-bar .p-serial,
+  .permit-table .table-serial {
+    color: #6a6a6a !important;
+    font-weight: 600 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){.generate-params{grid-template-columns:1fr}}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#bdbdbd;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#1a237e}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="brand">
+    <div class="brand-icon">⛏️</div>
+    <div>
+      <div class="brand-title">TN Mining Transport Permit Generator</div>
+      <div class="brand-sub">Dept. of Geology &amp; Mining — Automated Permit System</div>
+    </div>
+  </div>
+  <div class="topbar-right">🕐 <span id="clock"></span></div>
+</header>
+
+<!-- NAV -->
+<nav id="nav-tabs">
+  <button class="nav-tab active" data-tab="dashboard">🏠 Dashboard</button>
+  <button class="nav-tab" data-tab="template">📝 Permit Template</button>
+  <button class="nav-tab" data-tab="qrcode">🔳 QR Customize</button>
+  <button class="nav-tab" data-tab="vehicles">🚛 Vehicle Master</button>
+  <button class="nav-tab" data-tab="drivers">👤 Driver Master</button>
+  <button class="nav-tab" data-tab="signatures">✍️ Signatures</button>
+</nav>
+
+<main id="main-content">
+
+<!-- ===================== DASHBOARD ===================== -->
+<section id="panel-dashboard" class="tab-panel active">
+
+  <div class="generate-hero">
+    <h2>🚀 Generate Transport Permits</h2>
+    <p>Enter the parameters below. Serial numbers, dispatch slip numbers, date/time, and vehicle allocation all happen automatically. 25-minute intervals, cycling vehicles.</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="stat-vehicles">4</div><div class="stat-label">Vehicles</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-drivers">4</div><div class="stat-label">Drivers</div></div>
+    <div class="stat-card"><div class="stat-num" id="generated-count">0</div><div class="stat-label">Generated</div></div>
+    <div class="stat-card"><div class="stat-num">25 min</div><div class="stat-label">Interval</div></div>
+    <div class="stat-card"><div class="stat-num">24 MT</div><div class="stat-label">Quantity</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚙️ Generation Parameters</div>
+    </div>
+
+    <div class="generate-params">
+      <div class="param-card">
+        <label for="gen-count">📦 Number of Permits</label>
+        <input type="number" id="gen-count" min="1" max="200" value="50">
+      </div>
+      <div class="param-card">
+        <label for="gen-start-serial">🔢 Starting Serial Number</label>
+        <input type="text" id="gen-start-serial" value="TN06911024" placeholder="e.g. TN06911024">
+      </div>
+      <div class="param-card">
+        <label for="gen-start-dispatch">📋 Starting Dispatch Slip No</label>
+        <input type="text" id="gen-start-dispatch" value="DISP000006963032" placeholder="e.g. DISP000006963032">
+      </div>
+      <div class="param-card">
+        <label for="gen-start-datetime">📅 Dispatch Date &amp; Time (Permit 1)</label>
+        <input type="datetime-local" id="gen-start-datetime">
+      </div>
+    </div>
+
+    <div class="info-box blue" style="margin-bottom:16px;">
+      ℹ️ &nbsp;<strong>Auto Logic:</strong>
+      Each permit +25 min &nbsp;|&nbsp;
+      Travelling Date = Dispatch −10 min &nbsp;|&nbsp;
+      Required Time = Travelling +1 hr &nbsp;|&nbsp;
+      Vehicles cycle: Permit 1→V1, 2→V2, 5→V1...
+      &nbsp;|&nbsp; Change QR fields in the <strong>QR Customize</strong> tab.
+    </div>
+
+    <div id="progress-wrap" style="display:none;margin-bottom:14px;">
+      <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+      <div class="progress-text" id="progress-text">Generating...</div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-generate" style="padding:12px 28px;font-size:.95rem;">🚀 Generate Permits</button>
+      <button class="btn btn-outline" id="btn-clear-preview">🗑️ Clear</button>
+    </div>
+  </div>
+
+
+
+
+  <!-- Export bar -->
+  <div class="export-bar" id="export-bar" style="display:none;">
+    <span class="export-label">📤 Export:</span>
+    <button class="btn btn-success" id="btn-export-single">📄 Single PDF</button>
+    <button class="btn btn-primary" id="btn-export-separate">📑 Separate PDFs</button>
+    <button class="btn btn-warning" id="btn-export-zip">🗜️ ZIP</button>
+    <button class="btn btn-pink" id="btn-print">🖨️ Print</button>
+    <div id="export-progress-wrap" style="display:none;flex:1;margin-left:12px;">
+      <div class="progress-wrap"><div class="progress-bar" id="export-progress-bar"></div></div>
+      <div style="font-size:.72rem;color:#999;margin-top:2px;" id="export-progress-text"></div>
+    </div>
+  </div>
+
+  <!-- Permits Preview -->
+  <div class="card" id="preview-card" style="display:none;">
+    <div class="card-header">
+      <div class="card-title">👁️ Permit Preview</div>
+      <span id="preview-badge" class="badge badge-blue"></span>
+    </div>
+    <div id="permits-preview"></div>
+  </div>
+
+</section>
+
+<!-- ===================== TEMPLATE EDITOR ===================== -->
+<section id="panel-template" class="tab-panel">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📝 Edit Permit Template (Static Fields)</div>
+      <button class="btn btn-outline btn-sm" id="btn-reset-template">↺ Reset</button>
+    </div>
+    <form id="template-form">
+
+      <div class="section-divider">📋 Header Info</div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group"><label>HSN Code</label><input type="text" name="hsnCode"></div>
+        <div class="form-group"><label>Lessee ID</label><input type="text" name="lesseeId"></div>
+        <div class="form-group"><label>Mine Code</label><input type="text" name="mineCode"></div>
+        <div class="form-group"><label>Lease Area Details</label><input type="text" name="leaseAreaDetails"></div>
+      </div>
+
+      <div class="section-divider">🏢 Lessee Info</div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group"><label>Lessee Name &amp; Address (Short)</label><input type="text" name="lesseeNameAddress"></div>
+        <div class="form-group" style="grid-column:span 2;"><label>Lessee Full Address</label><textarea name="lesseeFullAddress" rows="3"></textarea></div>
+      </div>
+
+      <div class="section-divider">📍 Location</div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group"><label>District Name</label><input type="text" name="districtName"></div>
+        <div class="form-group"><label>Taluk Name</label><input type="text" name="talukName"></div>
+        <div class="form-group"><label>Village</label><input type="text" name="village"></div>
+        <div class="form-group"><label>SF.No / Extent</label><input type="text" name="sfNoExtent"></div>
+      </div>
+
+      <div class="section-divider">⛏️ Mineral &amp; Permit</div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group"><label>Mineral Name</label><input type="text" name="mineralName"></div>
+        <div class="form-group"><label>Bulk Permit No</label><input type="text" name="bulkPermitNo"></div>
+        <div class="form-group"><label>Classification</label><input type="text" name="classification"></div>
+        <div class="form-group"><label>Order Ref</label><input type="text" name="orderRef" placeholder="Leave blank if none"></div>
+        <div class="form-group"><label>Lease Period</label><input type="text" name="leasePeriod" placeholder="15-01-2026 to 14-07-2026"></div>
+        <div class="form-group"><label>Within Tamil Nadu</label>
+          <select name="withinTamilNadu"><option value="Yes">Yes</option><option value="No">No</option></select>
+        </div>
+      </div>
+
+      <div class="section-divider">🚛 Delivery &amp; Transport</div>
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group"><label>Delivered To</label><input type="text" name="deliveredTo"></div>
+        <div class="form-group"><label>Destination Address</label><input type="text" name="destinationAddress"></div>
+        <div class="form-group"><label>Vehicle Type</label><input type="text" name="vehicleType"></div>
+        <div class="form-group"><label>Total Distance (Kms)</label><input type="text" name="totalDistance"></div>
+        <div class="form-group"><label>Quantity (MT) — Fixed</label><input type="text" name="quantity" value="24"></div>
+        <div class="form-group"><label>Via (Route)</label><input type="text" name="via"></div>
+      </div>
+
+      <div class="section-divider">👨‍💼 Authorization</div>
+      <div class="form-grid" style="margin-bottom:24px;">
+        <div class="form-group" style="grid-column:span 2;"><label>Lessee / Authorized Person Name</label><input type="text" name="authorizedPersonName"></div>
+      </div>
+
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary">💾 Save Template</button>
+        <button type="button" class="btn btn-outline" id="btn-reset-template2">↺ Reset to Defaults</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ===================== QR CUSTOMIZE TAB ===================== -->
+<section id="panel-qrcode" class="tab-panel">
+  <div class="card" id="qr-customize-card">
+    <div class="card-header">
+      <div class="card-title">🔳 QR Customize</div>
+    </div>
+    <div class="info-box teal">
+      <strong>QR Format:</strong> serial, dispatch, minecode, date, time, distance, hours, mineral(qty), vehicle, Delivered To<br>
+      <span style="font-family:monospace;font-size:.78rem;opacity:.85;">e.g. TN06911024,DISP000006963032,TLRN0046,29-09-2026,14:09,100kms,1hrs,Earth(24MT),TN16H4807,Oriental</span>
+    </div>
+    <div class="section-divider">Live scan preview</div>
+    <div class="qr-preview-box" id="qr-preview-box"></div>
+  </div>
+</section>
+
+<!-- ===================== VEHICLE MASTER ===================== -->
+<section id="panel-vehicles" class="tab-panel">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🚛 Vehicle Master</div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" id="btn-add-vehicle">➕ Add Vehicle</button>
+        <button class="btn btn-success btn-sm" id="btn-import-vehicle-excel">📥 Import Excel</button>
+        <input type="file" id="vehicle-excel-input" accept=".xlsx,.xls,.csv" style="display:none;">
+      </div>
+    </div>
+    <div class="info-box teal" style="font-size:.78rem;">
+      📋 <strong>Excel columns:</strong> <code>Vehicle No</code> &nbsp;|&nbsp; Vehicles cycle automatically across permits (Permit 1→V1, 2→V2, 5→V1, etc.)
+    </div>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Vehicle No</th><th>Linked Driver</th><th style="width:170px;">Actions</th></tr></thead>
+        <tbody id="vehicle-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DRIVER MASTER ===================== -->
+<section id="panel-drivers" class="tab-panel">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">👤 Driver Master</div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-sm" id="btn-add-driver">➕ Add Driver</button>
+        <button class="btn btn-success btn-sm" id="btn-import-driver-excel">📥 Import Excel</button>
+        <input type="file" id="driver-excel-input" accept=".xlsx,.xls,.csv" style="display:none;">
+      </div>
+    </div>
+    <div class="info-box teal" style="font-size:.78rem;">
+      📋 <strong>Excel columns:</strong> <code>Vehicle No | Driver Name | Phone | License No</code>
+    </div>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Vehicle No</th><th>Driver Name</th><th>Phone</th><th>License No</th><th style="width:170px;">Actions</th></tr></thead>
+        <tbody id="driver-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SIGNATURES ===================== -->
+<section id="panel-signatures" class="tab-panel">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">✍️ Signatures &amp; Seal</div>
+    </div>
+    <p style="font-size:.83rem;color:#666;margin-bottom:20px;">Upload signatures and company seal. They will appear automatically on all generated permits. After uploading, regenerate permits on Dashboard.</p>
+    <div class="sig-upload-grid">
+      <div class="sig-upload-card" id="sig-card-addd">
+        <div class="sig-label">AD / DD Signature</div>
+        <div class="sig-icon" id="sig-icon-addd">📤</div>
+        <p style="font-size:.78rem;color:#999;" id="sig-text-addd">Click to upload</p>
+        <img class="sig-preview" id="sig-preview-addd" alt="AD/DD Sig">
+        <div style="margin-top:10px;"><button class="btn btn-danger btn-sm" id="sig-clear-addd">🗑️ Clear</button></div>
+        <input type="file" id="sig-input-addd" accept="image/*" style="display:none;">
+      </div>
+      <div class="sig-upload-card" id="sig-card-authorized">
+        <div class="sig-label">Authorized Person Signature</div>
+        <div class="sig-icon" id="sig-icon-authorized">📤</div>
+        <p style="font-size:.78rem;color:#999;" id="sig-text-authorized">Click to upload</p>
+        <img class="sig-preview" id="sig-preview-authorized" alt="Auth Sig">
+        <div style="margin-top:10px;"><button class="btn btn-danger btn-sm" id="sig-clear-authorized">🗑️ Clear</button></div>
+        <input type="file" id="sig-input-authorized" accept="image/*" style="display:none;">
+      </div>
+      <div class="sig-upload-card" id="sig-card-seal">
+        <div class="sig-label">Company Seal</div>
+        <div class="sig-icon" id="sig-icon-seal">📤</div>
+        <p style="font-size:.78rem;color:#999;" id="sig-text-seal">Click to upload</p>
+        <img class="sig-preview" id="sig-preview-seal" alt="Seal">
+        <div style="margin-top:10px;"><button class="btn btn-danger btn-sm" id="sig-clear-seal">🗑️ Clear</button></div>
+        <input type="file" id="sig-input-seal" accept="image/*" style="display:none;">
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== MODALS ===================== -->
+<div class="modal-overlay" id="vehicle-modal">
+  <div class="modal">
+    <div class="modal-title" id="v-modal-title">Add Vehicle</div>
+    <label class="modal-label" for="v-input-no">Vehicle Number</label>
+    <input type="text" id="v-input-no" class="modal-input" placeholder="e.g. TN16H4807" style="text-transform:uppercase;">
+    <div class="modal-footer">
+      <button class="btn btn-outline modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-vehicle">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="driver-modal">
+  <div class="modal">
+    <div class="modal-title" id="d-modal-title">Add Driver</div>
+    <label class="modal-label" for="d-input-vehicle">Vehicle No *</label>
+    <select id="d-input-vehicle" class="modal-input"><option value="">-- Select Vehicle --</option></select>
+    <label class="modal-label" for="d-input-name">Driver Name *</label>
+    <input type="text" id="d-input-name" class="modal-input" placeholder="Full name">
+    <label class="modal-label" for="d-input-phone">Phone Number</label>
+    <input type="tel" id="d-input-phone" class="modal-input" placeholder="10-digit number">
+    <label class="modal-label" for="d-input-license">License Number *</label>
+    <input type="text" id="d-input-license" class="modal-input" placeholder="e.g. TN202007008088" style="text-transform:uppercase;">
+    <div class="modal-footer">
+      <button class="btn btn-outline modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-driver">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- ===================== JAVASCRIPT ===================== -->
+<script>
+// ============================================================
+// CONSTANTS & DEFAULTS
+// ============================================================
+const DEFAULT_TEMPLATE = {
+  hsnCode: 'N/A',
+  lesseeId: 'KK1230489',
+  mineCode: 'TLRN0046',
+  leaseAreaDetails: '',
+  lesseeNameAddress: 'Oriental Structural Engineers Pvt. Ltd.',
+  lesseeFullAddress: 'M/s Oriental Structural Engineers Private Limited, SF 479 & 482/5 Chennai Tirupathi Salai, Perungalathur Village, Arakkonam Taluk, Ranipet District',
+  districtName: 'Tiruvallur',
+  talukName: 'Tiruttani',
+  village: 'Mamandur',
+  sfNoExtent: '11.,/002.25.00',
+  mineralName: 'Earth',
+  bulkPermitNo: 'TLR260000018',
+  classification: 'Porampoke Land',
+  orderRef: '',
+  leasePeriod: '15-01-2026 to 14-07-2026',
+  withinTamilNadu: 'Yes',
+  deliveredTo: 'Oriental',
+  vehicleType: 'Lorry',
+  totalDistance: '100',
+  quantity: '24',
+  destinationAddress: 'Tiruvallur',
+  via: 'THIRUPACHUR',
+  authorizedPersonName: 'K LAKSHMI NARAYANAN REDDY'
+};
+
+const DEFAULT_VEHICLES = [
+  { id: 1, vehicleNo: 'TN16H4807' },
+  { id: 2, vehicleNo: 'TN16H4808' },
+  { id: 3, vehicleNo: 'TN16H4809' },
+  { id: 4, vehicleNo: 'TN16H4810' }
+];
+
+const DEFAULT_DRIVERS = [
+  { id: 1, vehicleNo: 'TN16H4807', driverName: 'Raj Kumar R',  phone: '9597453199', licenseNo: 'TN202007008088' },
+  { id: 2, vehicleNo: 'TN16H4808', driverName: 'Ravi',         phone: '9876543210', licenseNo: 'TN202007008009' },
+  { id: 3, vehicleNo: 'TN16H4809', driverName: 'Murugan',      phone: '9003456789', licenseNo: 'TN202007008010' },
+  { id: 4, vehicleNo: 'TN16H4810', driverName: 'Senthil',      phone: '9944556677', licenseNo: 'TN202007008011' }
+];
+
+// ============================================================
+// STORAGE
+// ============================================================
+const Store = {
+  get(k, fb=null){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):fb; }catch{return fb;} },
+  set(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch{} },
+  del(k){ localStorage.removeItem(k); }
+};
+
+function getTemplate(){ return {...DEFAULT_TEMPLATE, ...Store.get('permitTemplate',{})}; }
+
+// ============================================================
+// PRINT CALIBRATION & ALIGNMENT LOGIC
+// ============================================================
+const DEFAULT_CALIBRATION = {
+  p1Top: 4.1,
+  p2Top: 16.95,
+  tableWidth: 16.2,
+  tableHeight: 9.5,
+  cellPaddingV: 0.0,
+  cellPaddingH: 2.0,
+  qrSize: 15.0,
+  qrTop: 0.25,
+  qrRight: 0.0,
+  qrLift: 2.2,
+  serialTop: 0.9,
+  serialRight: 1.85,
+  tableTopGap: 0.25,
+  sigHeight: 12.0,
+  fontSize: 7.8,
+  lineHeight: 1.05
+};
+
+function getCalibration(){
+  const stored = Store.get('printCalibration', {});
+  const CAL_VERSION = 18;
+  if(stored && (stored.tableWidth > 100 || stored._v !== CAL_VERSION)){
+    Store.del('printCalibration');
+    return { ...DEFAULT_CALIBRATION, _v: CAL_VERSION };
+  }
+  return { ...DEFAULT_CALIBRATION, ...stored, _v: CAL_VERSION };
+}
+
+function applyCalibrationStyles(){
+  const cal = getCalibration();
+  let styleEl = document.getElementById('calibration-styles');
+  if(!styleEl){
+    styleEl = document.createElement('style');
+    styleEl.id = 'calibration-styles';
+    document.head.appendChild(styleEl);
+  }
+  styleEl.innerHTML = `
+    .permit-page, .instruction-page {
+      width: 210mm !important;
+      height: 297mm !important;
+      max-width: 210mm !important;
+      max-height: 297mm !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      position: relative !important;
+      background-image: none !important;
+    }
+    .page-bg {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: fill !important;
+      z-index: 0 !important;
+      display: block !important;
+    }
+    .permit-page {
+      display: block !important;
+      padding: 0 !important;
+      gap: 0 !important;
+    }
+    .permit-doc {
+      width: ${cal.tableWidth}cm !important;
+      max-width: ${cal.tableWidth}cm !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      box-sizing: border-box !important;
+      position: absolute !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      margin: 0 !important;
+      z-index: 1 !important;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+    }
+    .permit-doc.permit-original,
+    .permit-page > .permit-doc:nth-of-type(1) {
+      top: ${cal.p1Top}cm !important;
+    }
+    .permit-doc.permit-duplicate,
+    .permit-page > .permit-doc:nth-of-type(2) {
+      top: ${cal.p2Top}cm !important;
+    }
+    .permit-top-bar {
+      position: absolute !important;
+      top: -${cal.qrLift}cm !important;
+      left: 0 !important;
+      right: 0 !important;
+      height: ${Math.max(cal.qrSize + 3, 18)}mm !important;
+      z-index: 5 !important;
+    }
+    .permit-top-bar .p-qr {
+      top: ${cal.qrTop}cm !important;
+      right: ${cal.qrRight}cm !important;
+    }
+    .permit-top-bar .p-qr img {
+      width: ${cal.qrSize}mm !important;
+      height: ${cal.qrSize}mm !important;
+      display: block !important;
+    }
+    .permit-top-bar .p-serial {
+      top: ${cal.serialTop}cm !important;
+      right: ${cal.serialRight}cm !important;
+      background: none !important;
+      background-color: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+      filter: none !important;
+      -webkit-box-shadow: none !important;
+      font-size: 10.5pt !important;
+      font-weight: 600 !important;
+      color: #6a6a6a !important;
+      text-align: center !important;
+      z-index: 3 !important;
+    }
+    .permit-table {
+      width: ${cal.tableWidth}cm !important;
+      height: ${cal.tableHeight}cm !important;
+      margin-top: ${cal.tableTopGap}cm !important;
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+      box-sizing: border-box !important;
+    }
+    .permit-table td {
+      border: 1px solid #999 !important;
+      padding: ${cal.cellPaddingV}mm ${cal.cellPaddingH}mm !important;
+      font-size: ${cal.fontSize}pt !important;
+      line-height: ${cal.lineHeight} !important;
+      background: transparent !important;
+      color: #000 !important;
+      font-weight: 600 !important;
+      font-family: Arial, Helvetica, sans-serif !important;
+    }
+    .permit-table .table-serial {
+      color: #6a6a6a !important;
+      font-weight: 600 !important;
+      box-sizing: border-box !important;
+    }
+    .sig-row-cal td {
+      height: ${cal.sigHeight}mm !important;
+    }
+  `;
+}
+
+function initCalibration(){
+  const cal = getCalibration();
+  const keys = ['p1Top','p2Top','tableWidth','tableHeight','cellPaddingV','cellPaddingH','qrSize','qrTop','qrRight','qrLift','serialTop','serialRight','tableTopGap','sigHeight','fontSize','lineHeight'];
+  const ids = {
+    p1Top: 'cal-p1-top',
+    p2Top: 'cal-p2-top',
+    tableWidth: 'cal-width',
+    tableHeight: 'cal-height',
+    cellPaddingV: 'cal-pad-v',
+    cellPaddingH: 'cal-pad-h',
+    qrSize: 'cal-qr',
+    qrTop: 'cal-qr-top',
+    qrRight: 'cal-qr-right',
+    qrLift: 'cal-qr-lift',
+    serialTop: 'cal-serial-top',
+    serialRight: 'cal-serial-right',
+    tableTopGap: 'cal-table-gap',
+    sigHeight: 'cal-sig-h',
+    fontSize: 'cal-font',
+    lineHeight: 'cal-line-height'
+  };
+  const labels = {
+    p1Top: 'val-p1-top',
+    p2Top: 'val-p2-top',
+    tableWidth: 'val-width',
+    tableHeight: 'val-height',
+    cellPaddingV: 'val-pad-v',
+    cellPaddingH: 'val-pad-h',
+    qrSize: 'val-qr',
+    qrTop: 'val-qr-top',
+    qrRight: 'val-qr-right',
+    qrLift: 'val-qr-lift',
+    serialTop: 'val-serial-top',
+    serialRight: 'val-serial-right',
+    tableTopGap: 'val-table-gap',
+    sigHeight: 'val-sig-h',
+    fontSize: 'val-font',
+    lineHeight: 'val-line-height'
+  };
+  
+  keys.forEach(k => {
+    const el = document.getElementById(ids[k]);
+    const lbl = document.getElementById(labels[k]);
+    if(el){
+      el.value = cal[k];
+      const getUnit = () => {
+        if(['p1Top','p2Top','tableWidth','tableHeight','qrTop','qrRight','qrLift','serialTop','serialRight','tableTopGap'].includes(k)) return ' cm';
+        if(['cellPaddingV','cellPaddingH','qrSize','sigHeight'].includes(k)) return ' mm';
+        if(k==='fontSize') return ' pt';
+        return '';
+      };
+      if(lbl) lbl.textContent = cal[k] + getUnit();
+      el.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if(lbl) lbl.textContent = val + getUnit();
+        const current = getCalibration();
+        current[k] = val;
+        Store.set('printCalibration', current);
+        applyCalibrationStyles();
+      });
+    }
+  });
+
+  document.getElementById('btn-reset-calibration')?.addEventListener('click', () => {
+    Store.del('printCalibration');
+    initCalibration();
+    applyCalibrationStyles();
+    showToast('Calibration reset to default', 'success');
+  });
+
+  applyCalibrationStyles();
+}
+function getVehicles(){ return Store.get('vehicles', DEFAULT_VEHICLES); }
+function getDrivers(){ return Store.get('drivers', DEFAULT_DRIVERS); }
+function getSignatures(){ return Store.get('signatures',{addd:null,authorized:null,seal:null}); }
+function getDriverForVehicle(vNo){ return getDrivers().find(d=>d.vehicleNo===vNo)||null; }
+function getVehicleForIndex(i){ const v=getVehicles(); return v.length?v[i%v.length]:null; }
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type='', dur=3200){
+  const c=document.getElementById('toast-container');
+  const icons={success:'✅',error:'❌',warning:'⚠️','':'ℹ️'};
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{
+    t.style.cssText='opacity:0;transform:translateX(100%);transition:all .3s ease';
+    setTimeout(()=>t.remove(),300);
+  },dur);
+}
+
+// ============================================================
+// DATE/TIME LOGIC
+// ============================================================
+function fmtDT(d){
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yy=d.getFullYear();
+  const h=String(d.getHours()).padStart(2,'0');
+  const min=String(d.getMinutes()).padStart(2,'0');
+  const sec=String(d.getSeconds()).padStart(2,'0');
+  return `${dd}-${mm}-${yy} ${h}:${min}:${sec}`;
+}
+function fmtDT24(d){
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yy=d.getFullYear();
+  const h=String(d.getHours()).padStart(2,'0');
+  const min=String(d.getMinutes()).padStart(2,'0');
+  return `${dd}-${mm}-${yy} ${h}:${min}`;
+}
+function addMin(d,m){ return new Date(d.getTime()+m*60000); }
+function subMin(d,m){ return new Date(d.getTime()-m*60000); }
+function toLocalInput(d){
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yy=d.getFullYear();
+  const h=String(d.getHours()).padStart(2,'0');
+  const min=String(d.getMinutes()).padStart(2,'0');
+  return `${yy}-${mm}-${dd}T${h}:${min}`;
+}
+
+// ============================================================
+// SERIAL / DISPATCH LOGIC
+// ============================================================
+function incrSerial(base, steps){
+  const m=base.match(/^(.*?)(\d+)$/);
+  if(!m) return base;
+  const prefix=m[1], numStr=m[2], w=numStr.length;
+  const n=parseInt(numStr,10)+steps;
+  return prefix+String(n).padStart(w,'0');
+}
+function incrDispatch(base, steps){
+  const m=base.match(/^([A-Za-z]*)(\d+)$/);
+  if(!m) return base;
+  const prefix=m[1], numStr=m[2], w=numStr.length;
+  const n=BigInt(numStr)+BigInt(steps);
+  return prefix+String(n).padStart(w,'0');
+}
+
+// ============================================================
+// QR CODE GENERATION
+// serial, dispatch, minecode, date, time, distance, hours, mineral(qty), vehicle, Delivered To
+// ============================================================
+function compactUpper(v){
+  return String(v || '').replace(/\s+/g, '').toUpperCase();
+}
+
+function qrDatePart(dt){
+  return String(dt || '').trim().split(/\s+/)[0] || '';
+}
+
+function qrTimePart(dt){
+  return (String(dt || '').trim().split(/\s+/)[1] || '').replace(/:\d{2}$/, '');
+}
+
+function buildQRText(p){
+  const dist = String(p.totalDistance || '').replace(/[^\d.]/g, '');
+  const qty = String(p.quantity || '').replace(/[^\d.]/g, '');
+  const mineral = String(p.mineralName || '').replace(/\s+/g, '');
+  const hrsMatch = String(p.requiredTime || '').match(/(\d+)\s*hrs?/i);
+  return [
+    compactUpper(p.serialNo),
+    compactUpper(p.dispatchSlipNo),
+    compactUpper(p.mineCode),
+    qrDatePart(p.dispatchDateTime),
+    qrTimePart(p.dispatchDateTime),
+    dist ? `${dist}kms` : '',
+    hrsMatch ? `${hrsMatch[1]}hrs` : '1hrs',
+    mineral && qty ? `${mineral}(${qty}MT)` : mineral,
+    compactUpper(p.vehicleNo),
+    String(p.deliveredTo || '').trim()
+  ].join(',');
+}
+
+function samplePermitForQR(){
+  const tmpl = getTemplate();
+  const serialEl = document.getElementById('gen-start-serial');
+  const dispatchEl = document.getElementById('gen-start-dispatch');
+  const dtEl = document.getElementById('gen-start-datetime');
+  const vehicles = getVehicles();
+  const dt = dtEl && dtEl.value ? new Date(dtEl.value) : new Date();
+  return {
+    ...tmpl,
+    serialNo: serialEl ? serialEl.value.trim() : 'TN06911024',
+    dispatchSlipNo: dispatchEl ? dispatchEl.value.trim() : 'DISP000006963032',
+    dispatchDateTime: fmtDT(dt),
+    requiredTime: '1 hrs',
+    vehicleNo: vehicles[0] ? vehicles[0].vehicleNo : 'TN16H4807'
+  };
+}
+
+function initQRCustomizer(){
+  Store.del('qrConfig');
+  Store.del('qrConfigV2');
+  const box = document.getElementById('qr-preview-box');
+  if (box) box.textContent = buildQRText(samplePermitForQR());
+}
+
+function genQR(text){
+  return new Promise(resolve=>{
+    try{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:absolute;left:-9999px;top:-9999px;';
+      document.body.appendChild(wrap);
+      new QRCode(wrap,{text,width:90,height:90,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+      setTimeout(()=>{
+        const canvas=wrap.querySelector('canvas');
+        const img=wrap.querySelector('img');
+        resolve(canvas?canvas.toDataURL('image/png'):(img?img.src:''));
+        document.body.removeChild(wrap);
+      },120);
+    }catch(e){ resolve(''); }
+  });
+}
+
+// ============================================================
+// BUILD PERMIT DATA
+// ============================================================
+function buildPermit(index, params, tmpl){
+  const dispatchDate = addMin(params.startDate, index*25);
+  const travelDate   = subMin(dispatchDate, 10);
+  const reqDate      = addMin(travelDate, 60);
+  const requiredTime = `1 hrs (${fmtDT(reqDate)})`;
+
+  const vehicle = getVehicleForIndex(index);
+  const driver  = vehicle ? getDriverForVehicle(vehicle.vehicleNo) : null;
+
+  return {
+    ...tmpl,
+    serialNo:        incrSerial(params.startSerial, index),
+    dispatchSlipNo:  incrDispatch(params.startDispatch, index),
+    dispatchDateTime: fmtDT(dispatchDate),
+    travellingDate:   fmtDT24(travelDate),
+    requiredTime,
+    vehicleNo:       vehicle ? vehicle.vehicleNo : 'N/A',
+    driverName:      driver  ? driver.driverName : 'N/A',
+    driverLicenseNo: driver  ? driver.licenseNo  : 'N/A',
+    driverPhone:     driver  ? driver.phone       : 'N/A',
+  };
+}
+
+// ============================================================
+// RENDER SINGLE PERMIT HTML
+// ============================================================
+function renderPermitHTML(p, qrDataUrl, isOriginal){
+  const sigs = getSignatures();
+  const adddSigHTML = sigs.addd ? `<img src="${sigs.addd}" style="max-height:34px;max-width:90px;object-fit:contain;display:block;">` : '';
+  const qrHTML = qrDataUrl ? `<img src="${qrDataUrl}" alt="QR">` : '';
+  const copyClass = isOriginal ? 'permit-original' : 'permit-duplicate';
+
+  return `
+<div class="permit-doc ${copyClass}" data-permit-id="${p.serialNo}">
+
+  <!-- TOP BAR: HSN (left) | Serial No + QR (right) -->
+  <div class="permit-top-bar">
+    <span class="p-serial" style="background:none!important;background-color:transparent!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;border:none!important;padding:0!important;">${p.serialNo}</span>
+    <span class="p-qr">${qrHTML}</span>
+  </div>
+
+  <!-- HSN CODE + DATE & TIME OF DISPATCH (no border) -->
+  <div class="permit-hsn-row">
+    <span>HSN Code: ${p.hsnCode}</span>
+    <span>Date &amp; Time of Dispatch: ${p.dispatchDateTime}</span>
+  </div>
+
+  <!-- MAIN DATA TABLE: 16cm × 10.5cm, 4 columns -->
+  <table class="permit-table">
+    <colgroup>
+      <col style="width:27%;">
+      <col style="width:26%;">
+      <col style="width:24%;">
+      <col style="width:23%;">
+    </colgroup>
+
+    <!-- Row 1: Lessee Id | Minecode | Lease Area Details | Serial No -->
+    <tr>
+      <td>Lessee Id: ${p.lesseeId}</td>
+      <td>Minecode: ${p.mineCode}</td>
+      <td style="font-weight:700;">Lease Area Details</td>
+      <td>Serial No: <span class="table-serial">${p.serialNo}</span></td>
+    </tr>
+
+    <!-- Row 2: Lessee Name and Address | District Name -->
+    <tr>
+      <td style="font-weight:700;">Lessee Name and Address:</td>
+      <td>${p.lesseeNameAddress}</td>
+      <td style="font-weight:700;">District Name:</td>
+      <td>${p.districtName}</td>
+    </tr>
+
+    <!-- Rows 3-5: Full address (rowspan 3) | Taluk / Village / SF No -->
+    <tr>
+      <td colspan="2" rowspan="3" style="vertical-align:top;">${p.lesseeFullAddress}</td>
+      <td style="font-weight:700;">Taluk Name:</td>
+      <td>${p.talukName}</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">Village:</td>
+      <td>${p.village}</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;">SF.No / Extent:</td>
+      <td>${p.sfNoExtent}</td>
+    </tr>
+
+    <!-- Row 6: Mineral Name | Bulk Permit No | Classification -->
+    <tr>
+      <td>Mineral Name: ${p.mineralName}</td>
+      <td>Bulk Permit No: ${p.bulkPermitNo}</td>
+      <td style="font-weight:700;">Classification:</td>
+      <td>${p.classification}</td>
+    </tr>
+
+    <!-- Row 7: Order Ref | Lease Period -->
+    <tr>
+      <td style="font-weight:700;">Order Ref:</td>
+      <td>${p.orderRef || ''}</td>
+      <td style="font-weight:700;">Lease Period:</td>
+      <td>${p.leasePeriod}</td>
+    </tr>
+
+    <!-- Row 8: Dispatch Slip No | Within Tamil Nadu -->
+    <tr>
+      <td style="font-weight:700;">Dispatch Slip No:</td>
+      <td>${p.dispatchSlipNo}</td>
+      <td style="font-weight:700;">Within Tamil Nadu:</td>
+      <td>${p.withinTamilNadu}</td>
+    </tr>
+
+    <!-- Row 9: Delivered To -->
+    <tr>
+      <td style="font-weight:700;">Delivered To:</td>
+      <td colspan="3">${p.deliveredTo}</td>
+    </tr>
+
+    <!-- Row 10: Vehicle No | Destination Address label -->
+    <tr>
+      <td style="font-weight:700;">Vehicle No:</td>
+      <td>${p.vehicleNo}</td>
+      <td colspan="2" style="font-weight:700;">Destination Address:</td>
+    </tr>
+
+    <!-- Row 11: Vehicle Type | Destination value (rowspan 4) -->
+    <tr>
+      <td style="font-weight:700;">Vehicle Type:</td>
+      <td>${p.vehicleType}</td>
+      <td colspan="2" rowspan="4" style="vertical-align:top;">${p.destinationAddress}</td>
+    </tr>
+
+    <!-- Row 12: Total Distance -->
+    <tr>
+      <td style="font-weight:700;">Total Distance In (Kms):</td>
+      <td>${p.totalDistance}</td>
+    </tr>
+
+    <!-- Row 13: Travelling Date -->
+    <tr>
+      <td style="font-weight:700;">Travelling Date:</td>
+      <td>${p.travellingDate}</td>
+    </tr>
+
+    <!-- Row 14: Required Time -->
+    <tr>
+      <td style="font-weight:700;">Required Time:</td>
+      <td>${p.requiredTime}</td>
+    </tr>
+
+    <!-- Row 15: Quantity | Driver Name -->
+    <tr>
+      <td style="font-weight:700;">Quantity(in MT):</td>
+      <td>${p.quantity}</td>
+      <td style="font-weight:700;">Driver Name:</td>
+      <td>${p.driverName}</td>
+    </tr>
+
+    <!-- Row 16: Driver License No | Via -->
+    <tr>
+      <td style="font-weight:700;">Driver License No:</td>
+      <td>${p.driverLicenseNo}</td>
+      <td style="font-weight:700;">Via:</td>
+      <td>${p.via}</td>
+    </tr>
+
+    <!-- Row 17: Driver Phone No | Lessee / Authorized Person Name -->
+    <tr>
+      <td style="font-weight:700;">Driver Phone No:</td>
+      <td>${p.driverPhone}</td>
+      <td style="font-weight:700;">Lessee / Authorized Person Name:</td>
+      <td>${p.authorizedPersonName}</td>
+    </tr>
+
+    <!-- Row 18: Signature Row -->
+    <tr class="sig-row">
+      <td style="font-weight:700;vertical-align:top;">Driver Signature:</td>
+      <td></td>
+      <td style="font-weight:700;vertical-align:top;">Signature of AD / DD:</td>
+      <td style="vertical-align:bottom;text-align:center;">${adddSigHTML}</td>
+    </tr>
+
+  </table>
+</div>`;
+}
+
+
+
+
+// ============================================================
+// GENERATE ALL PERMITS
+// ============================================================
+let generatedPermits = [];
+
+async function generateAll(){
+  const count = parseInt(document.getElementById('gen-count').value)||50;
+  const startSerial = document.getElementById('gen-start-serial').value.trim();
+  const startDispatch = document.getElementById('gen-start-dispatch').value.trim();
+  const startDateStr = document.getElementById('gen-start-datetime').value;
+
+  if(!startSerial){ showToast('Enter starting serial number','error'); return; }
+  if(!startDispatch){ showToast('Enter starting dispatch slip number','error'); return; }
+  if(!startDateStr){ showToast('Enter starting date & time','error'); return; }
+  if(count<1||count>200){ showToast('Count must be 1–200','error'); return; }
+
+  const startDate = new Date(startDateStr);
+  const params = { count, startSerial, startDispatch, startDate };
+  const tmpl = getTemplate();
+
+  const btnGen = document.getElementById('btn-generate');
+  btnGen.disabled=true; btnGen.textContent='⏳ Generating...';
+
+  const pw = document.getElementById('progress-wrap');
+  const pb = document.getElementById('progress-bar');
+  const pt = document.getElementById('progress-text');
+  pw.style.display='block'; pb.style.width='0%'; pt.textContent=`Building ${count} permit data...`;
+
+  // Build data
+  generatedPermits = [];
+  for(let i=0;i<count;i++) generatedPermits.push(buildPermit(i,params,tmpl));
+
+  pb.style.width='30%'; pt.textContent='Generating QR codes...';
+
+  // Render HTML with QR codes
+  const container = document.getElementById('permits-preview');
+  container.innerHTML='';
+
+  for(let i=0;i<generatedPermits.length;i++){
+    const p = generatedPermits[i];
+    const qrUrl = await genQR(buildQRText(p));
+
+    // Group every 2 permits into one Royalty .permit-page (with background)
+    if (i % 2 === 0) {
+      const pageIndex = Math.floor(i / 2);
+      const royaltyPage = document.createElement('div');
+      royaltyPage.className = 'permit-page';
+      royaltyPage.id = `permit-page-${pageIndex}`;
+      royaltyPage.setAttribute('data-permit-group', pageIndex);
+      container.appendChild(royaltyPage);
+    }
+
+    // Append permit into its corresponding royalty page (which is the element right before the instruction page)
+    const pageIndex = Math.floor(i / 2);
+    const targetRoyaltyPage = document.getElementById(`permit-page-${pageIndex}`);
+    const temp = document.createElement('div');
+    temp.innerHTML = renderPermitHTML(p, qrUrl, i % 2 === 0).trim();
+    targetRoyaltyPage.appendChild(temp.firstChild);
+
+    // Update progress
+    const pct = 30 + Math.round((i+1)/count*65);
+    pb.style.width = pct+'%';
+    pt.textContent = `Rendering permit ${i+1} of ${count}...`;
+
+    // Yield to browser every 5 permits
+    if((i+1)%5===0) await new Promise(r=>setTimeout(r,0));
+  }
+
+  pb.style.width='100%';
+  pt.textContent=`✅ ${count} permits generated successfully!`;
+
+  document.getElementById('generated-count').textContent=count;
+  document.getElementById('preview-card').style.display='block';
+  document.getElementById('preview-badge').textContent=`${count} permits`;
+  document.getElementById('export-bar').style.display='flex';
+  document.getElementById('preview-card').scrollIntoView({behavior:'smooth',block:'start'});
+
+  btnGen.disabled=false;
+  btnGen.textContent='🔄 Regenerate';
+  showToast(`${count} permits generated!`, 'success');
+}
+
+// ============================================================
+// TEMPLATE FORM
+// ============================================================
+function initTemplateForm(){
+  const form = document.getElementById('template-form');
+  const tmpl = getTemplate();
+
+  Object.keys(DEFAULT_TEMPLATE).forEach(k=>{
+    const el = form.querySelector(`[name="${k}"]`);
+    if(el) el.value = tmpl[k]||'';
+  });
+
+  form.addEventListener('submit', e=>{
+    e.preventDefault();
+    const data={};
+    Object.keys(DEFAULT_TEMPLATE).forEach(k=>{
+      const el = form.querySelector(`[name="${k}"]`);
+      if(el) data[k]=el.value;
+    });
+    Store.set('permitTemplate', data);
+    showToast('Template saved!','success');
+  });
+
+  const resetFn=()=>{
+    Store.del('permitTemplate');
+    Object.keys(DEFAULT_TEMPLATE).forEach(k=>{
+      const el=form.querySelector(`[name="${k}"]`);
+      if(el) el.value=DEFAULT_TEMPLATE[k]||'';
+    });
+    showToast('Reset to defaults','warning');
+  };
+  document.getElementById('btn-reset-template')?.addEventListener('click',resetFn);
+  document.getElementById('btn-reset-template2')?.addEventListener('click',resetFn);
+}
+
+// ============================================================
+// VEHICLE MASTER
+// ============================================================
+let vEditId = null;
+
+function renderVehicleTable(){
+  const tbody = document.getElementById('vehicle-tbody');
+  const vehicles = getVehicles();
+  const drivers = getDrivers();
+  if(!vehicles.length){
+    tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🚛</div><p>No vehicles yet</p></div></td></tr>`;
+    document.getElementById('stat-vehicles').textContent='0';
+    return;
+  }
+  tbody.innerHTML = vehicles.map((v,i)=>{
+    const drv=drivers.find(d=>d.vehicleNo===v.vehicleNo);
+    return `<tr>
+      <td>${i+1}</td>
+      <td><span class="badge badge-blue">${v.vehicleNo}</span></td>
+      <td>${drv?drv.driverName:'<span style="color:#ccc">No driver</span>'}</td>
+      <td class="actions">
+        <button class="btn btn-warning btn-sm" onclick="openEditVehicle(${v.id})">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="delVehicle(${v.id})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('stat-vehicles').textContent=vehicles.length;
+}
+
+window.openEditVehicle=function(id){
+  const v=getVehicles().find(x=>x.id===id);
+  if(!v) return;
+  vEditId=id;
+  document.getElementById('v-modal-title').textContent='Edit Vehicle';
+  document.getElementById('v-input-no').value=v.vehicleNo;
+  document.getElementById('vehicle-modal').classList.add('open');
+};
+
+window.delVehicle=function(id){
+  if(!confirm('Delete this vehicle?')) return;
+  Store.set('vehicles', getVehicles().filter(v=>v.id!==id));
+  renderVehicleTable(); renderDriverTable();
+  showToast('Vehicle deleted','warning');
+};
+
+function initVehicleMaster(){
+  renderVehicleTable();
+
+  document.getElementById('btn-add-vehicle').addEventListener('click',()=>{
+    vEditId=null;
+    document.getElementById('v-modal-title').textContent='Add Vehicle';
+    document.getElementById('v-input-no').value='';
+    document.getElementById('vehicle-modal').classList.add('open');
+  });
+
+  document.getElementById('btn-save-vehicle').addEventListener('click',()=>{
+    const no=document.getElementById('v-input-no').value.trim().toUpperCase();
+    if(!no){ showToast('Enter vehicle number','error'); return; }
+    let vl=getVehicles();
+    if(vEditId){ vl=vl.map(v=>v.id===vEditId?{...v,vehicleNo:no}:v); }
+    else vl.push({id:Date.now(),vehicleNo:no});
+    Store.set('vehicles',vl);
+    document.getElementById('vehicle-modal').classList.remove('open');
+    renderVehicleTable(); renderDriverTable();
+    showToast(vEditId?'Vehicle updated!':'Vehicle added!','success');
+  });
+
+  document.getElementById('btn-import-vehicle-excel').addEventListener('click',()=>{
+    document.getElementById('vehicle-excel-input').click();
+  });
+
+  document.getElementById('vehicle-excel-input').addEventListener('change', async(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    try{
+      const data=await file.arrayBuffer();
+      const wb=XLSX.read(data);
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      const existing=getVehicles(); let added=0;
+      rows.forEach(r=>{
+        const no=(r['Vehicle No']||r['VehicleNo']||r['vehicle_no']||'').toString().trim().toUpperCase();
+        if(no&&!existing.find(v=>v.vehicleNo===no)){ existing.push({id:Date.now()+Math.random(),vehicleNo:no}); added++; }
+      });
+      Store.set('vehicles',existing);
+      renderVehicleTable(); renderDriverTable();
+      showToast(`Imported ${added} vehicles`,'success');
+    }catch{ showToast('Error reading Excel','error'); }
+    e.target.value='';
+  });
+}
+
+// ============================================================
+// DRIVER MASTER
+// ============================================================
+let dEditId = null;
+
+function renderDriverTable(){
+  const tbody=document.getElementById('driver-tbody');
+  const drivers=getDrivers();
+  if(!drivers.length){
+    tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👤</div><p>No drivers yet</p></div></td></tr>`;
+    document.getElementById('stat-drivers').textContent='0';
+    return;
+  }
+  tbody.innerHTML=drivers.map((d,i)=>`<tr>
+    <td>${i+1}</td>
+    <td><span class="badge badge-blue">${d.vehicleNo}</span></td>
+    <td>${d.driverName}</td>
+    <td>${d.phone}</td>
+    <td><span class="badge badge-green">${d.licenseNo}</span></td>
+    <td class="actions">
+      <button class="btn btn-warning btn-sm" onclick="openEditDriver(${d.id})">✏️ Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="delDriver(${d.id})">🗑️</button>
+    </td>
+  </tr>`).join('');
+  document.getElementById('stat-drivers').textContent=drivers.length;
+}
+
+window.openEditDriver=function(id){
+  const d=getDrivers().find(x=>x.id===id);
+  if(!d) return;
+  dEditId=id;
+  fillVehicleSelect('d-input-vehicle',d.vehicleNo);
+  document.getElementById('d-modal-title').textContent='Edit Driver';
+  document.getElementById('d-input-name').value=d.driverName;
+  document.getElementById('d-input-phone').value=d.phone;
+  document.getElementById('d-input-license').value=d.licenseNo;
+  document.getElementById('driver-modal').classList.add('open');
+};
+
+window.delDriver=function(id){
+  if(!confirm('Delete this driver?')) return;
+  Store.set('drivers',getDrivers().filter(d=>d.id!==id));
+  renderDriverTable();
+  showToast('Driver deleted','warning');
+};
+
+function fillVehicleSelect(selId, selVal=''){
+  const sel=document.getElementById(selId);
+  const vehicles=getVehicles();
+  sel.innerHTML='<option value="">-- Select Vehicle --</option>'+
+    vehicles.map(v=>`<option value="${v.vehicleNo}" ${v.vehicleNo===selVal?'selected':''}>${v.vehicleNo}</option>`).join('');
+}
+
+function initDriverMaster(){
+  renderDriverTable();
+
+  document.getElementById('btn-add-driver').addEventListener('click',()=>{
+    dEditId=null;
+    fillVehicleSelect('d-input-vehicle');
+    document.getElementById('d-modal-title').textContent='Add Driver';
+    document.getElementById('d-input-name').value='';
+    document.getElementById('d-input-phone').value='';
+    document.getElementById('d-input-license').value='';
+    document.getElementById('driver-modal').classList.add('open');
+  });
+
+  document.getElementById('btn-save-driver').addEventListener('click',()=>{
+    const vehicleNo=document.getElementById('d-input-vehicle').value.trim();
+    const driverName=document.getElementById('d-input-name').value.trim();
+    const phone=document.getElementById('d-input-phone').value.trim();
+    const licenseNo=document.getElementById('d-input-license').value.trim().toUpperCase();
+    if(!vehicleNo||!driverName||!licenseNo){ showToast('Fill required fields','error'); return; }
+    let dl=getDrivers();
+    if(dEditId){ dl=dl.map(d=>d.id===dEditId?{...d,vehicleNo,driverName,phone,licenseNo}:d); }
+    else dl.push({id:Date.now(),vehicleNo,driverName,phone,licenseNo});
+    Store.set('drivers',dl);
+    document.getElementById('driver-modal').classList.remove('open');
+    renderDriverTable();
+    showToast(dEditId?'Driver updated!':'Driver added!','success');
+  });
+
+  document.getElementById('btn-import-driver-excel').addEventListener('click',()=>{
+    document.getElementById('driver-excel-input').click();
+  });
+
+  document.getElementById('driver-excel-input').addEventListener('change', async(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    try{
+      const data=await file.arrayBuffer();
+      const wb=XLSX.read(data);
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      const existing=getDrivers(); let added=0;
+      rows.forEach(r=>{
+        const vehicleNo=(r['Vehicle No']||r['VehicleNo']||'').toString().trim().toUpperCase();
+        const driverName=(r['Driver Name']||r['DriverName']||'').toString().trim();
+        const phone=(r['Phone']||r['Phone No']||'').toString().trim();
+        const licenseNo=(r['License No']||r['LicenseNo']||'').toString().trim().toUpperCase();
+        if(vehicleNo&&driverName&&licenseNo){ existing.push({id:Date.now()+Math.random(),vehicleNo,driverName,phone,licenseNo}); added++; }
+      });
+      Store.set('drivers',existing);
+      renderDriverTable();
+      showToast(`Imported ${added} drivers`,'success');
+    }catch{ showToast('Error reading Excel','error'); }
+    e.target.value='';
+  });
+}
+
+// ============================================================
+// SIGNATURE MANAGER
+// ============================================================
+function initSignatureManager(){
+  ['addd','authorized','seal'].forEach(type=>{
+    const card=document.getElementById(`sig-card-${type}`);
+    const input=document.getElementById(`sig-input-${type}`);
+    const preview=document.getElementById(`sig-preview-${type}`);
+    const icon=document.getElementById(`sig-icon-${type}`);
+    const txt=document.getElementById(`sig-text-${type}`);
+    const clearBtn=document.getElementById(`sig-clear-${type}`);
+
+    // Restore saved
+    const sigs=getSignatures();
+    if(sigs[type]){
+      card.classList.add('has-sig');
+      preview.src=sigs[type]; preview.style.display='block';
+      icon.textContent='✅'; txt.textContent='Uploaded — click to replace';
+    }
+
+    card.addEventListener('click',()=>input.click());
+
+    input.addEventListener('change', async(e)=>{
+      const file=e.target.files[0]; if(!file) return;
+      if(!file.type.startsWith('image/')){ showToast('Please upload an image','error'); return; }
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const url=ev.target.result;
+        const sigs=getSignatures(); sigs[type]=url; Store.set('signatures',sigs);
+        preview.src=url; preview.style.display='block';
+        card.classList.add('has-sig'); icon.textContent='✅'; txt.textContent='Uploaded — click to replace';
+        showToast('Signature uploaded!','success');
+      };
+      reader.readAsDataURL(file);
+      e.target.value='';
+    });
+
+    clearBtn.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      const sigs=getSignatures(); sigs[type]=null; Store.set('signatures',sigs);
+      preview.src=''; preview.style.display='none';
+      card.classList.remove('has-sig'); icon.textContent='📤'; txt.textContent='Click to upload';
+      showToast('Signature cleared','warning');
+    });
+  });
+}
+
+// ============================================================
+// PDF EXPORT
+// ============================================================
+function setExportProgress(cur, total){
+  const bar=document.getElementById('export-progress-bar');
+  const txt=document.getElementById('export-progress-text');
+  if(bar) bar.style.width=`${(cur/total)*100}%`;
+  if(txt) txt.textContent=`Processing ${cur}/${total}...`;
+}
+
+const A4_PX_W = 1240; // output canvas: 210mm at 150dpi
+const A4_PX_H = 1754;
+// CSS mm/cm are 96dpi. Overlay must be captured at this size or the table
+// sits in the left ~2/3 of the PDF with empty space on the right.
+const CSS_A4_W = Math.round(210 * 96 / 25.4); // 794
+const CSS_A4_H = Math.round(297 * 96 / 25.4); // 1123
+
+function loadHtmlImage(src){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Failed to load ' + src));
+    img.src = src;
+  });
+}
+
+/** Compose a true A4 canvas: stretch background to 210×297mm, then overlay tables. */
+async function capturePermitEl(el){
+  const canvas = document.createElement('canvas');
+  canvas.width = A4_PX_W;
+  canvas.height = A4_PX_H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, A4_PX_W, A4_PX_H);
+
+  const bgEl = el.querySelector('.page-bg');
+  if(bgEl && bgEl.src){
+    const bgImg = await loadHtmlImage(bgEl.getAttribute('src') || bgEl.src);
+    ctx.drawImage(bgImg, 0, 0, A4_PX_W, A4_PX_H);
+  }
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:'+CSS_A4_W+'px;height:'+CSS_A4_H+'px;overflow:hidden;background:transparent;z-index:-1;';
+  const clone = el.cloneNode(true);
+  clone.style.cssText = 'width:210mm;height:297mm;max-width:210mm;max-height:297mm;margin:0;padding:0;box-shadow:none;overflow:hidden;position:relative;background:transparent;';
+  const cloneBg = clone.querySelector('.page-bg');
+  if(cloneBg) cloneBg.style.display = 'none';
+  wrap.appendChild(clone);
+  document.body.appendChild(wrap);
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  try {
+    const overlay = await html2canvas(clone, {
+      scale: 1.5,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+      logging: false,
+      width: CSS_A4_W,
+      height: CSS_A4_H,
+      windowWidth: CSS_A4_W,
+      windowHeight: CSS_A4_H
+    });
+    // Scale 96dpi overlay to the same A4 box as the stretched background
+    ctx.drawImage(overlay, 0, 0, A4_PX_W, A4_PX_H);
+  } finally {
+    wrap.remove();
+  }
+  return canvas;
+}
+
+/** Build a full-bleed A4 PDF (each page fills 210×297mm with no margins). */
+async function buildFullA4Pdf(pages, progressCb){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [210, 297], compress: true });
+  for(let i = 0; i < pages.length; i++){
+    if(progressCb) progressCb(i + 1, pages.length);
+    if(i > 0) pdf.addPage([210, 297]);
+    const canvas = await capturePermitEl(pages[i]);
+    const img = canvas.toDataURL('image/jpeg', 0.95);
+    pdf.addImage(img, 'JPEG', 0, 0, 210, 297, '', 'FAST');
+  }
+  return pdf;
+}
+
+/** Native Chrome/Edge print: royalty pages only. */
+function printFullA4(){
+  const sheets = Array.from(document.querySelectorAll('.permit-page'));
+  if(!sheets.length){ showToast('Generate permits first!','error'); return; }
+  applyCalibrationStyles();
+  sheets.forEach((el, i) => {
+    el.classList.toggle('print-sheet-last', i === sheets.length - 1);
+  });
+  const cleanup = () => {
+    sheets.forEach(el => el.classList.remove('print-sheet-last'));
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  window.print();
+}
+
+async function exportSinglePDF(){
+  const pages = document.querySelectorAll('.permit-page');
+  if(!pages.length){ showToast('Generate permits first!','error'); return; }
+  const pw=document.getElementById('export-progress-wrap');
+  pw.style.display='block';
+  showToast('Generating PDF...','');
+  try {
+    const pdf = await buildFullA4Pdf(pages, setExportProgress);
+    pdf.save('TN_Mining_Permits_All.pdf');
+    showToast('Single PDF downloaded (full A4)!','success');
+  } catch(err) {
+    console.error(err);
+    showToast('PDF export failed','error');
+  } finally {
+    pw.style.display='none';
+  }
+}
+
+async function exportSeparatePDFs(){
+  const royaltyPages = document.querySelectorAll('.permit-page');
+  if(!royaltyPages.length){ showToast('Generate permits first!','error'); return; }
+  const pw=document.getElementById('export-progress-wrap');
+  pw.style.display='block';
+  for(let i=0;i<royaltyPages.length;i++){
+    setExportProgress(i+1,royaltyPages.length);
+    const rPage=royaltyPages[i];
+    
+    // Find serial number from the first permit in this page
+    const firstPermit = rPage.querySelector('.permit-doc');
+    const sn = firstPermit ? (firstPermit.getAttribute('data-permit-id') || `page_${i+1}`) : `page_${i+1}`;
+
+    const pdf = await buildFullA4Pdf([rPage]);
+    pdf.save(`Permit_${sn}.pdf`);
+    await new Promise(r=>setTimeout(r,180));
+  }
+  pw.style.display='none';
+  showToast('All separate PDFs downloaded!','success');
+}
+
+async function exportZIP(){
+  const royaltyPages = document.querySelectorAll('.permit-page');
+  if(!royaltyPages.length){ showToast('Generate permits first!','error'); return; }
+  const pw=document.getElementById('export-progress-wrap');
+  pw.style.display='block';
+  const zip=new JSZip();
+  for(let i=0;i<royaltyPages.length;i++){
+    setExportProgress(i+1,royaltyPages.length);
+    const rPage=royaltyPages[i];
+
+    const firstPermit = rPage.querySelector('.permit-doc');
+    const sn = firstPermit ? (firstPermit.getAttribute('data-permit-id') || `page_${i+1}`) : `page_${i+1}`;
+
+    const pdf = await buildFullA4Pdf([rPage]);
+    zip.file(`Permit_${sn}.pdf`,pdf.output('arraybuffer'));
+    await new Promise(r=>setTimeout(r,60));
+  }
+  const blob=await zip.generateAsync({type:'blob'});
+  saveAs(blob,'TN_Mining_Permits.zip');
+  pw.style.display='none';
+  showToast('ZIP downloaded!','success');
+}
+
+function initExport(){
+  document.getElementById('btn-export-single').addEventListener('click',exportSinglePDF);
+  document.getElementById('btn-export-separate').addEventListener('click',exportSeparatePDFs);
+  document.getElementById('btn-export-zip').addEventListener('click',exportZIP);
+  document.getElementById('btn-print').addEventListener('click',()=>{
+    printFullA4();
+  });
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function initTabs(){
+  document.querySelectorAll('.nav-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      const target=tab.getAttribute('data-tab');
+      document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(`panel-${target}`)?.classList.add('active');
+    });
+  });
+}
+
+// ============================================================
+// MODALS CLOSE
+// ============================================================
+function initModals(){
+  document.querySelectorAll('.modal-cancel,.modal-close').forEach(btn=>{
+    btn.addEventListener('click',()=>btn.closest('.modal-overlay')?.classList.remove('open'));
+  });
+  document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+    overlay.addEventListener('click',e=>{if(e.target===overlay) overlay.classList.remove('open');});
+  });
+}
+
+// ============================================================
+// CLOCK
+// ============================================================
+function startClock(){
+  const el=document.getElementById('clock');
+  if(!el) return;
+  const upd=()=>el.textContent=new Date().toLocaleString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+  upd(); setInterval(upd,1000);
+}
+
+// ============================================================
+// DASHBOARD INIT
+// ============================================================
+function initDashboard(){
+  const dtInput=document.getElementById('gen-start-datetime');
+  if(dtInput) dtInput.value=toLocalInput(new Date());
+
+  document.getElementById('btn-generate').addEventListener('click', generateAll);
+
+  document.getElementById('btn-clear-preview').addEventListener('click',()=>{
+    document.getElementById('permits-preview').innerHTML='';
+    document.getElementById('preview-card').style.display='none';
+    document.getElementById('export-bar').style.display='none';
+    document.getElementById('progress-wrap').style.display='none';
+    document.getElementById('generated-count').textContent='0';
+    generatedPermits=[];
+    document.getElementById('btn-generate').textContent='🚀 Generate Permits';
+    showToast('Preview cleared','warning');
+  });
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+document.addEventListener('DOMContentLoaded',()=>{
+  startClock();
+  initTabs();
+  initModals();
+  initTemplateForm();
+  initVehicleMaster();
+  initDriverMaster();
+  initSignatureManager();
+  initCalibration();
+  initDashboard();
+  initExport();
+  initQRCustomizer();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Logs and debug files
+firebase-debug.log
+.firebase/
+
+# Node modules (if any)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local backups / scratch crops
+permit_bg_backup.jpg
+scratch_crop*.jpg
+_*.png
+_*.py
