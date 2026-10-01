@@ -205,12 +205,12 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#212121;min-height:
 /* Original (top half): below heading, fully inside top half */
 .permit-doc.permit-original,
 .permit-page > .permit-doc:nth-of-type(1) {
-  top: 4.6cm;
+  top: 4.3cm;
 }
 /* Duplicate (bottom half): below its heading — reference alignment */
 .permit-doc.permit-duplicate,
 .permit-page > .permit-doc:nth-of-type(2) {
-  top: 18.35cm;
+  top: 17.35cm;
 }
 /* Generated serial sits over the pre-printed number and masks it */
 .permit-top-bar {
@@ -811,8 +811,8 @@ function getTemplate(){ return {...DEFAULT_TEMPLATE, ...Store.get('permitTemplat
 // PRINT CALIBRATION & ALIGNMENT LOGIC
 // ============================================================
 const DEFAULT_CALIBRATION = {
-  p1Top: 4.6,
-  p2Top: 18.35,
+  p1Top: 4.3,
+  p2Top: 17.35,
   tableWidth: 16.2,
   tableHeight: 9.5,
   cellPaddingV: 0.0,
@@ -831,7 +831,7 @@ const DEFAULT_CALIBRATION = {
 
 function getCalibration(){
   const stored = Store.get('printCalibration', {});
-  const CAL_VERSION = 24;
+  const CAL_VERSION = 25;
   if(stored && (stored.tableWidth > 100 || stored._v !== CAL_VERSION)){
     Store.del('printCalibration');
     return { ...DEFAULT_CALIBRATION, _v: CAL_VERSION };
